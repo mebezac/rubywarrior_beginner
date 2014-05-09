@@ -2,7 +2,7 @@ class Player
 
   def initialize
     @direction = :forward
-    @has_gone_back = false
+    @number_of_pivots = 0
   end
 
   def play_turn(warrior)
@@ -20,40 +20,9 @@ class Player
   end
 
   def should_rest?(warrior)
-    warrior.health < 17 and !under_attack?(@start_of_turn_health, @current_health)
+    warrior.health < 17 && !under_attack?(@start_of_turn_health, @current_health) && closest_thing(warrior.look)[0].to_s != "Wizard" && warrior.look.any? {|space| space.enemy?}
   end
 
-  def take_action(warrior)
-
-    if back_to_the_wall?(warrior)
-      @has_gone_back = true
-      @direction = :forward
-    elsif should_go_backwards?
-      @direction = :backward
-    else
-      @direction = :forward
-    end
-
-    do_the_right_thing(warrior)
-  end
-
-  def should_go_backwards?
-    !@has_gone_back || @current_health < 8 
-  end
-
-  def should_pivot?(warrior)
-    warrior.feel(@direction).wall?
-  end
-
-  def do_the_right_thing(warrior)
-    if warrior.feel.wall?
-      warrior.pivot!
-    elsif warrior.feel(@direction).empty?
-      warrior.walk!(@direction)
-    else
-      attack_or_rescue(warrior)
-    end
-  end
 
   def closest_thing(array_of_spaces)
     array_of_spaces.each do |space|
@@ -68,23 +37,41 @@ class Player
     closest_thing(array_of_spaces).any? {|space| space.enemy?}
   end
 
-  def what_to_do?(warrior, array_of_spaces)
-    right_in_front = array_of_spaces[0]
-    if right_in_front.captive?
-      warrior.rescue!(@direction)
-    elsif right_in_front.empty? && !enemy_is_closest?(array_of_spaces)
-      warrior.walk!(@direction)
-    elsif enemy_is_closest?(array_of_spaces)
+  def walk_and_attack_or_rescue_or_shoot(warrior)
+    if closest_thing(warrior.look)[0].to_s != "Wizard"
+      walk_and_attack_or_rescue(warrior)
+    else
       warrior.shoot!
     end
   end
 
+  def walk_and_attack_or_rescue(warrior)
+    warrior.feel.empty? ? warrior.walk! : attack_or_rescue(warrior)
+  end
+
   def attack_or_rescue(warrior)
-    warrior.feel(@direction).captive? ? warrior.rescue!(@direction) : warrior.attack!(@direction)
+    warrior.feel.captive? ? warrior.rescue! : warrior.attack!
   end
 
-  def back_to_the_wall?(warrior)
-    warrior.feel(:backward).wall?
+  def what_to_do?(warrior, array_of_spaces)
+    right_in_front = array_of_spaces[0]
+    if should_pivot?(warrior)
+      @number_of_pivots += 1
+      warrior.pivot!
+    else
+      walk_and_attack_or_rescue_or_shoot(warrior)
+    end
   end
 
+  def should_pivot?(warrior)
+    if closest_thing(warrior.look)[0].to_s == "Archer"
+      false
+    elsif closest_thing(warrior.look(:backward))[0].to_s == "Archer"
+      true
+    elsif warrior.look.any? {|space| space.wall?} && @number_of_pivots <= 2 && !warrior.look.any? {|space| space.captive?}
+      true
+    else
+      false
+    end
+  end
 end

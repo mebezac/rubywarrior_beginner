@@ -22,10 +22,11 @@ class Player
   end
 
   def should_rest?(warrior)
-    warrior.health < 17 and warrior.feel(@direction).empty? and not under_attack?(@start_of_turn_health, @current_health)
+    warrior.health < 17 and !under_attack?(@start_of_turn_health, @current_health)
   end
 
   def take_action(warrior)
+
     if back_to_the_wall?(warrior)
       @has_gone_back = true
       @direction = :forward
@@ -34,6 +35,7 @@ class Player
     else
       @direction = :forward
     end
+
     do_the_right_thing(warrior)
   end
 
@@ -41,8 +43,18 @@ class Player
     !@has_gone_back || @current_health < 8 
   end
 
+  def should_pivot?(warrior)
+    warrior.feel(@direction).wall?
+  end
+
   def do_the_right_thing(warrior)
-    warrior.feel(@direction).empty? ? warrior.walk!(@direction) : attack_or_rescue(warrior)
+    if warrior.feel.wall?
+      warrior.pivot!
+    elsif warrior.feel(@direction).empty?
+      warrior.walk!(@direction)
+    else
+      attack_or_rescue(warrior)
+    end
   end
 
   def attack_or_rescue(warrior)

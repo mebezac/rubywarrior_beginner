@@ -21,7 +21,7 @@ def attack_or_rescue(warrior)
 end
 
 def should_go_backwards?(warrior)
-  warrior.look(:backward).any? {|s| s.captive?} || warrior.health < @health_needed && long_range_attack(warrior)
+  warrior.look(:backward).any? {|s| s.captive?} || warrior.health < @health_needed && long_range_attack(warrior) && !archer_could_not_attack(warrior)
 end
 
 def long_range_attack(warrior)
@@ -68,6 +68,10 @@ def closest_thing(array_of_spaces)
       break
     end
   end
+end
+
+def archer_could_not_attack(warrior)
+  @fighting && warrior.look.map { |s| s.to_s }[1] == "Archer" 
 end
 
 def optimize_for_points(warrior)

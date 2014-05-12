@@ -36,15 +36,6 @@ def should_shoot?(warrior)
   closest_thing(warrior.look)[0].to_s == "Wizard"
 end
 
-def optimize_for_points(warrior)
-  if !@optimization_has_run
-    @optimization_has_run = true
-    if warrior.look(:backward).any? { |s| s.to_s == "Archer" }
-      @end_level = true
-    end
-  end
-end
-
 def set_fighting(warrior)
   if warrior.look[0].empty? || warrior.look[0].wall?
     @fighting = false
@@ -57,7 +48,7 @@ end
 
 def health_needed(array_of_spaces)
   closest_thing = closest_thing(array_of_spaces)[0].to_s
-  if clear_road(array_of_spaces) || closest_thing == "Wizard"
+  if clear_road(array_of_spaces) || closest_thing == "Wizard" || closest_thing == "Captive"
     @health_needed = 0
   elsif closest_thing == "Sludge"
     @health_needed = 7
@@ -75,6 +66,15 @@ def closest_thing(array_of_spaces)
     unless space.empty?
       return [space]
       break
+    end
+  end
+end
+
+def optimize_for_points(warrior)
+  if !@optimization_has_run
+    @optimization_has_run = true
+    if warrior.look(:backward).any? { |s| s.to_s == "Archer" }
+      @end_level = true
     end
   end
 end

@@ -8,7 +8,7 @@ def take_action(warrior)
 end
 
 def should_rest?(warrior)
-  warrior.health < @health_needed && !@fighting
+  warrior.health < @health_needed && !@fighting && !should_shoot_sludge?(warrior)
 end
 
 def attack_or_rescue(warrior)
@@ -21,7 +21,7 @@ def attack_or_rescue(warrior)
 end
 
 def should_go_backwards?(warrior)
-  warrior.look(:backward).any? {|s| s.captive?} || warrior.health < @health_needed && long_range_attack(warrior) && !archer_could_not_attack(warrior)
+  warrior.look(:backward).any? {|s| s.captive?} && !should_shoot_sludge?(warrior) || warrior.health < @health_needed && long_range_attack(warrior) && !archer_could_not_attack(warrior)
 end
 
 def long_range_attack(warrior)
@@ -33,7 +33,7 @@ def should_pivot?(warrior)
 end
 
 def should_shoot?(warrior)
-  closest_thing(warrior.look)[0].to_s == "Wizard"
+  closest_thing(warrior.look)[0].to_s == "Wizard" || should_shoot_sludge?(warrior)
 end
 
 def set_fighting(warrior)
@@ -72,6 +72,10 @@ end
 
 def archer_could_not_attack(warrior)
   @fighting && warrior.look.map { |s| s.to_s }[1] == "Archer" 
+end
+
+def should_shoot_sludge?(warrior)
+  closest_thing(warrior.look)[0].to_s == "Thick Sludge" && !archer_could_not_attack(warrior) && @direction == :forward || closest_thing(warrior.look)[0].to_s == "Thick Sludge" && closest_thing(warrior.look(:backward))[0].to_s == "Captive" || closest_thing(warrior.look)[0].to_s == "Sludge" && warrior.health < 3
 end
 
 def optimize_for_points(warrior)

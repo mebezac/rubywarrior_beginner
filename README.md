@@ -1,3 +1,3 @@
 # Ruby Warrior - Beginner
 
-## 606 Points in Epic Mode
+## 629 Points in Epic Mode

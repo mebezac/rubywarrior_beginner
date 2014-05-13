@@ -9,6 +9,7 @@ class Player
     @number_of_pivots = 0
     @optimization_has_run = false
     @end_level = false
+    @captives_rescued = 0
   end
 
   def play_turn(warrior)

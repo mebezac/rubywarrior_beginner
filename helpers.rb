@@ -14,6 +14,7 @@ end
 def attack_or_rescue(warrior)
  if warrior.feel(@direction).captive?
    warrior.rescue!(@direction)
+   @captives_rescued += 1
  else
    warrior.attack!
    @fighting = true
@@ -29,7 +30,7 @@ def long_range_attack(warrior)
 end
 
 def should_pivot?(warrior)
-  warrior.feel.wall? || @end_level && @number_of_pivots == 0 || clear_road(warrior.look) && warrior.look.any? { |s| s.stairs? } && @number_of_pivots < 2 && @end_level
+  warrior.feel.wall? || clear_road(warrior.look) && warrior.look.any? { |s| s.stairs? } && @number_of_pivots == 0 && @end_level
 end
 
 def should_shoot?(warrior)
@@ -48,7 +49,9 @@ end
 
 def health_needed(array_of_spaces)
   closest_thing = closest_thing(array_of_spaces)[0].to_s
-  if clear_road(array_of_spaces) || closest_thing == "Wizard" || closest_thing == "Captive"
+  if @end_level && closest_thing != "Wizard" && closest_thing != "Archer" && @captives_rescued == 0
+    @health_needed = 9
+  elsif clear_road(array_of_spaces) || closest_thing == "Wizard" || closest_thing == "Captive"
     @health_needed = 0
   elsif closest_thing == "Sludge"
     @health_needed = 7
@@ -75,7 +78,7 @@ def archer_could_not_attack(warrior)
 end
 
 def should_shoot_sludge?(warrior)
-  closest_thing(warrior.look)[0].to_s == "Thick Sludge" && !archer_could_not_attack(warrior) && @direction == :forward || closest_thing(warrior.look)[0].to_s == "Thick Sludge" && closest_thing(warrior.look(:backward))[0].to_s == "Captive" || closest_thing(warrior.look)[0].to_s == "Sludge" && warrior.health < 3
+  closest_thing(warrior.look)[0].to_s == "Thick Sludge" && !archer_could_not_attack(warrior) && @direction == :forward && !@end_level || closest_thing(warrior.look)[0].to_s == "Thick Sludge" && closest_thing(warrior.look(:backward))[0].to_s == "Captive" || closest_thing(warrior.look)[0].to_s == "Sludge" && warrior.health < 3
 end
 
 def optimize_for_points(warrior)
